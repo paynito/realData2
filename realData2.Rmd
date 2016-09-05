@@ -72,28 +72,27 @@ boxplots.triple = boxplot(value~location+year,
 library(foreign)
 library(Hmisc)
 require(ggplot2)
+require(magrittr)
+# load rename function from plyr
+require(plyr)
+# load revised functions from dplyr
 require(dplyr)
+library(tidyr)
 file456 <- spss.get("/Users/AbuDavid/school/census/f456/f456ind.por", use.value.labels=TRUE)
 subSetInd2014<-dplyr::select(file456,YEARSUR,WPLDIST,USSRBORN,INCSAL)
 #glimpse(subSetInd2014)
 #utils::View(subSetInd2014)
-```
-<!-- Make a simple box-plot of Individual income in 2014. -->
-<!-- ```{r plot2} -->
-<!-- ggplot(subSetInd2014, aes(x=YEARSUR,y=INCSAL))+geom_boxplot() -->
-
-<!-- ``` -->
-<!-- Prettier Version? -->
-```{r plot3}
-ggplot(subSetInd2014, aes(x=YEARSUR,y=INCSAL))+geom_boxplot()
+#ggplot(subSetInd2014, aes(x=YEARSUR,y=INCSAL))+geom_boxplot()
 ##subset to only 3 cities, easier to copy DFW boxplot code
 subCitiesInd2014 <- subSetInd2014 %>% dplyr::filter(WPLDIST=="Center"    |
                                                     WPLDIST=="Tel-Aviv"  |
                                                     WPLDIST=="Gush Dan")
 ##check the subset
-##utils::View(stacked.data)#
-##utils::View(subCitiesInd2014)
+utils::View(incomeByCity)#
+#utils::View(subCitiesInd2014)
 ```
+
+Text section: why is it getting evaluated now?
 How does your NYC/DFW data compare to the Israel Data?
 
 |   NYC     | Israel           | 
@@ -101,4 +100,68 @@ How does your NYC/DFW data compare to the Israel Data?
 |   location    | WPLDIST     |   
 | year          | YEARSUR    |    
 | value         | INCSAL     |   
-So, that, etc.
+
+
+```{r plot4}
+ # remove USSRBORN column
+subCities2014 <- subCitiesInd2014 %>% select(-USSRBORN)
+#utils::View(subCities2014)
+
+# reorder by column name
+# data <- data[c("A", "B", "C")]
+subCitiesIND2014 <- subCitiesInd2014[c("WPLDIST","YEARSUR","INCSAL")]
+# utils::View(subCitiesIND2014)
+# rename to match NYC namespace
+ Israel2014 <-subCitiesIND2014 %>%rename(c('WPLDIST' = 'location',
+                                          'YEARSUR' = 'year',
+                                           'INCSAL' = 'value'))
+                                        #year = YEARSUR,value = INCSAL)
+                                        ## comment this section until after
+                                        ##reshape2::melt  - or - tidyr::gather
+                       ##                  head(Israel2014)
+
+                                       
+                       ##                  # create fake data for 2 more years
+                       ##                  Israel2015 <-Israel2014
+                       ##                  Israel2016 <-Israel2014
+                       ##                  # give everyone a raise in salary
+                                     
+                       ##                  Israel2015$value <- Israel2015$value * 1.2
+                                       
+                       ##                  Israel2015$year <- 2015
+                       ##                  Israel2016$value <- Israel2015$value * 1.2
+                       ##                  Israel2016$year <- 2016
+                       ##                  # create stacked data frame
+                       ## #         all.Israel= data.frame(rbind
+                       ##     #     (Israel2014,Israel2015,Israel2016)) 
+                       ##                  #        rbind(head(Israel2014),head(Israel2015),head(Israel2016)
+                       ##                  all.Israel <-rbind(Israel2014,Israel2015,Israel2016)
+                       ##                  head(all.Israel)
+                       ##                  head(incomeByCity)
+                       ##                  ## do the city's have to rotate through the list, or just have
+                       ##                  ## the same sample size each??
+                       ##                  ## get length
+                                         
+                                        length(Israel2014$location)
+                                       
+                                        count(Israel2014$location=="Center")
+                                        count(Israel2014$location=="Gush Dan")
+                                        count(Israel2014$location=="Tel-Aviv")
+## previous code used
+##   all.data = data.frame(rbind
+##                            (nyc1984,dfw1984,okc1984,
+##                              nyc1985,dfw1985,okc1985,
+##                              nyc1986,dfw1986,okc1986))
+## all.data$location <- location
+## all.data$year     <- year
+## stacked.data = melt(all.data,id =c('location','year'))
+
+    ```
+* Some words after final code block.
+** The opposite of tidyr::gather is spread.
+** The opposite of reshape2::melt is separate() or colsplit().
+```{r plot5}
+#tidyr::spread(Israel2014)
+Israel2014 %>% filter(location=="Center")
+
+```
