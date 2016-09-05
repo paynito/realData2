@@ -1,0 +1,104 @@
+---
+title: "Real Data Finally"
+author: "Benyomin Hagalili"
+date: "9/2/2016"
+output: html_document
+#output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Add another year of data to the previous graph  
+Create a boxplot to illustrate the range of Incomes 
+as it varies by city
+[code gist](https://gist.github.com/paynito/14fb904b9f589e4c17aedde049fd16f1)
+```{r create data}
+# duplicate 1 # to make a mode
+nyc_income1984 <- c(4,246,24,34,234,553,34)
+dfw_income1984 <- c(344, 423,522, 234, 522, 255)
+okc_income1984 <-c(234,234,236,99,184,301)
+      # pad any short columns with NA
+max.len = max(length(nyc_income1984),length(dfw_income1984),length(okc_income1984))
+nyc1984 <-c(nyc_income1984, rep(NA, max.len-length(nyc_income1984)))
+dfw1984 <-c(dfw_income1984, rep(NA, max.len-length(dfw_income1984)))
+okc1984 <-c(okc_income1984,rep(NA,  max.len-length(okc_income1984)))
+nyc1985 <- nyc1984*1.4
+dfw1985 <- dfw1984+50
+okc1985 <- okc1984*.7
+#create data for a third year
+nyc1986 <- nyc1984*.8
+dfw1986 <- dfw1984*1.2
+okc1986 <- okc1984*1.3
+location <- c('NYC','DFW','OKC')
+cityName <- tolower(location)
+# year = c(rep(1984,3),rep(1985,3),rep(1986,3))
+year<- c(1984,1984,1984,1985,1985,1985,1986,1986,1986)
+# year<- c(1984,1985,1986)
+library(reshape2)
+                                        #combine the data
+all.data = data.frame(rbind
+                           (nyc1984,dfw1984,okc1984,
+                             nyc1985,dfw1985,okc1985,
+                             nyc1986,dfw1986,okc1986)
+                      )
+# this seems to end up with strings, not pointers to lists
+#y1984 <-paste0(cityName, 1984)
+#y1985 <- paste0(cityName,1985)
+#y1986<-paste0(cityName,  1986)
+#all.data = data.frame(rbind(y1984,y1985,y1986))
+##
+all.data$location <- location
+all.data$year     <- year
+stacked.data = melt(all.data,id =c('location','year'))
+head(stacked.data)
+incomeByCity <- stacked.data[,-3]
+boxplots.triple = boxplot(value~location+year,
+                          data = incomeByCity,
+                          ylab = "$/month",
+                          las = 2,
+                        #  at = c(1,1.8,2.6,6,6.8,7.6),
+                        #  names = location,
+                        #  xaxt = 'n',
+                          ylim=c(0,800),
+                          col = c("sienna","palevioletred1","royalblue2")
+                          )
+# jpeg('groupedBoxPlots3.jpg')
+     boxplots.triple
+    # text(c(1,1.8,2.6,6,6.8,7.6),c(6,8,1,17.5,20,15.5),location)
+    # axis(side=1, at=c(1.8,6.8,10.5), labels=c(1984,1985,1986))
+     title('Individual Income in 3 cities, 1984-86')       
+                                        # dev.off()
+
+library(foreign)
+library(Hmisc)
+require(ggplot2)
+require(dplyr)
+file456 <- spss.get("/Users/AbuDavid/school/census/f456/f456ind.por", use.value.labels=TRUE)
+subSetInd2014<-dplyr::select(file456,YEARSUR,WPLDIST,USSRBORN,INCSAL)
+#glimpse(subSetInd2014)
+#utils::View(subSetInd2014)
+```
+<!-- Make a simple box-plot of Individual income in 2014. -->
+<!-- ```{r plot2} -->
+<!-- ggplot(subSetInd2014, aes(x=YEARSUR,y=INCSAL))+geom_boxplot() -->
+
+<!-- ``` -->
+<!-- Prettier Version? -->
+```{r plot3}
+ggplot(subSetInd2014, aes(x=YEARSUR,y=INCSAL))+geom_boxplot()
+##subset to only 3 cities, easier to copy DFW boxplot code
+subCitiesInd2014 <- subSetInd2014 %>% dplyr::filter(WPLDIST=="Center"    |
+                                                    WPLDIST=="Tel-Aviv"  |
+                                                    WPLDIST=="Gush Dan")
+##check the subset
+##utils::View(stacked.data)#
+##utils::View(subCitiesInd2014)
+```
+How does your NYC/DFW data compare to the Israel Data?
+
+|   NYC     | Israel           | 
+| ------------- |:-------------:| 
+|   location    | WPLDIST     |   
+| year          | YEARSUR    |    
+| value         | INCSAL     |   
+So, that, etc.
